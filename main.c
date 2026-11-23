@@ -1,6 +1,6 @@
-#pragma warning(disable: 4996) // отключаем ошибку
+#pragma warning(disable: 4996) // отключаем ошибку MSVC про "небезопасный" scanf
 #include <stdio.h>
-#include <windows.h> // нужна для SetConsoleCP 
+#include <windows.h> // нужна для SetConsoleCP (русские буквы в консоли Windows)
 
 #define START_DAY 1
 #define START_HOUR 8
@@ -8,9 +8,9 @@
 #define MAX_WORK_HOURS 1000 // ограничение, чтобы не получить переполнение int
 #define INVENTORY_SIZE 10
 #define EMPTY_SLOT 0
-#define MAX_ITEM_ID 9
+#define MAX_ITEM_ID 9 
 
-// Читает целое число. Если ввели не число - просим ввести заново.
+// проверяет,ввели ли число или что то другое
 int readInt()
 {
     int num;
@@ -19,11 +19,11 @@ int readInt()
         printf("Это не число! Введите ещё раз: ");
         while (getchar() != '\n'); // чистим буфер ввода
     }
-    while (getchar() != '\n'); // выбрасываем хвост строки
+    while (getchar() != '\n'); // выбрасываем хвост строки, например "5abc"
     return num;
 }
 
-// Читает целое число и проверяет, что оно в диапазоне 
+// проверяем,в диапазоне ли введеное число 
 int readInRange(char* ask, int min, int max)
 {
     printf("%s (от %d до %d): ", ask, min, max);
@@ -36,6 +36,38 @@ int readInRange(char* ask, int min, int max)
     return num;
 }
 
+// добавляет часы ,обновляет время. звездочки стоят потому что это указатели
+void addHours(int* day, int* hour, int hours)
+{
+    *hour = *hour + hours;
+    *day = *day + *hour / HOURS_IN_DAY; 
+    *hour = *hour % HOURS_IN_DAY;       
+}
+
+// задание по варианту(переворачиваем массив,цикл на половину повторений из длинны массива потому что он задействует сразу 2 элемента)
+void reverseInventory(int inv[], int len)
+{
+    for (int i = 0; i < len / 2; i++)
+    {
+        int temp = inv[i];
+        inv[i] = inv[len - 1 - i];
+        inv[len - 1 - i] = temp;
+    }
+}
+
+// прост печатаем меню
+void printMenu()
+{
+    printf("\n[1] Посмотреть на часы\n");
+    printf("[2] Поработать (промотать время)\n");
+    printf("[3] Посмотреть инвентарь\n");
+    printf("[4] Положить предмет в слот\n");
+    printf("[5] Выбросить предмет\n");
+    printf("[6] Перевернуть инвентарь\n");
+    printf("[0] Выход\n");
+    printf("Ваш выбор: ");
+}
+// печатаем время(если оно не двухзначное,добавляем 0 в начало)
 void printTime(int day, int hour)
 {
     printf("Текущее время: День %d, ", day);
@@ -46,7 +78,7 @@ void printTime(int day, int hour)
     printf("%d:00\n", hour);
 }
 
-// Печатает название предмета по его ID
+// название предмета по его номеру
 void printItemName(int id)
 {
     switch (id)
@@ -62,7 +94,7 @@ void printItemName(int id)
     case 9: printf(" (Пшеница)"); break;
     }
 }
-
+// выводим инвентарь на экран
 void printInventory(int inv[], int len)
 {
     for (int i = 0; i < len; i++)
@@ -72,17 +104,39 @@ void printInventory(int inv[], int len)
         printf("\n");
     }
 }
-
-// Вариант 3: переворачиваем массив 
-void reverseInventory(int inv[], int len)
+// работаем н-е количество часов, используем функцию addhours
+void doWork(int* day, int* hour)
 {
-    for (int i = 0; i < len / 2; i++)
-    {
-        int temp = inv[i];
-        inv[i] = inv[len - 1 - i];
-        inv[len - 1 - i] = temp;
-    }
+    int hours = readInRange("Сколько часов работать", 0, MAX_WORK_HOURS);
+    addHours(day, hour, hours);
+    printTime(*day, *hour);
 }
+// ложим предмет в слот
+void doPutItem(int inv[])
+{
+    int slot = readInRange("Номер слота", 0, INVENTORY_SIZE - 1);
+    int item = readInRange("ID предмета", 0, MAX_ITEM_ID);
+    inv[slot] = item;
+    printf("Готово! В слоте %d теперь предмет %d\n", slot, item);
+}
+// выбрасываем предмет из слота
+void doThrowItem(int inv[])
+{
+    int slot = readInRange("Номер слота", 0, INVENTORY_SIZE - 1);
+    inv[slot] = EMPTY_SLOT;
+    printf("Слот %d очищен\n", slot);
+}
+// показывает инвентарь до переворота и после 
+void doReverse(int inv[])
+{
+    printf("--- До переворота ---\n");
+    printInventory(inv, INVENTORY_SIZE);
+    reverseInventory(inv, INVENTORY_SIZE);
+    printf("--- После переворота ---\n");
+    printInventory(inv, INVENTORY_SIZE);
+}
+
+// main (основная часть) 
 
 int main()
 {
@@ -91,19 +145,12 @@ int main()
 
     int current_day = START_DAY;
     int current_hour = START_HOUR;
-    int inventory[INVENTORY_SIZE] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 }; 
-    int action, hours, slot, item;
+    int inventory[INVENTORY_SIZE] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+    int action;
 
     do
     {
-        printf("\n[1] Посмотреть на часы\n");
-        printf("[2] Поработать (промотать время)\n");
-        printf("[3] Посмотреть инвентарь\n");
-        printf("[4] Положить предмет в слот\n");
-        printf("[5] Выбросить предмет\n");
-        printf("[6] Задание по варианту\n");
-        printf("[0] Выход\n");
-        printf("Ваш выбор: ");
+        printMenu();
         action = readInt();
 
         switch (action)
@@ -112,32 +159,19 @@ int main()
             printTime(current_day, current_hour);
             break;
         case 2:
-            hours = readInRange("Сколько часов работать", 0, MAX_WORK_HOURS);
-            current_hour = current_hour + hours;
-            current_day = current_day + current_hour / HOURS_IN_DAY; // сколько целых суток прошло
-            current_hour = current_hour % HOURS_IN_DAY;              // сколько часов осталось
-            printTime(current_day, current_hour);
+            doWork(&current_day, &current_hour);
             break;
         case 3:
             printInventory(inventory, INVENTORY_SIZE);
             break;
         case 4:
-            slot = readInRange("Номер слота", 0, INVENTORY_SIZE - 1);
-            item = readInRange("ID предмета", 0, MAX_ITEM_ID);
-            inventory[slot] = item;
-            printf("Готово! В слоте %d теперь предмет %d\n", slot, item);
+            doPutItem(inventory);
             break;
         case 5:
-            slot = readInRange("Номер слота", 0, INVENTORY_SIZE - 1);
-            inventory[slot] = EMPTY_SLOT;
-            printf("Слот %d очищен\n", slot);
+            doThrowItem(inventory);
             break;
         case 6:
-            printf("--- До переворота ---\n");
-            printInventory(inventory, INVENTORY_SIZE);
-            reverseInventory(inventory, INVENTORY_SIZE);
-            printf("--- После переворота ---\n");
-            printInventory(inventory, INVENTORY_SIZE);
+            doReverse(inventory);
             break;
         case 0:
             printf("Пока-пока!\n");
