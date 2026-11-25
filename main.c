@@ -1,6 +1,7 @@
 #pragma warning(disable: 4996) // отключаем ошибку MSVC про "небезопасный" scanf
 #include <stdio.h>
 #include <windows.h> // нужна для SetConsoleCP (русские буквы в консоли Windows)
+#include <string.h>
 
 #define START_DAY 1
 #define START_HOUR 8
@@ -9,6 +10,8 @@
 #define INVENTORY_SIZE 10
 #define EMPTY_SLOT 0
 #define MAX_ITEM_ID 9 
+#define MAX_NAME_LEN 64
+#define DEFAULT_FARMER_NAME "Фермер"
 
 // проверяет,ввели ли число или что то другое
 int readInt()
@@ -35,6 +38,23 @@ int readInRange(char* ask, int min, int max)
     }
     return num;
 }
+// вводим строчку
+void readString(char* ask,char* text,int size)
+{
+    printf("%s", ask);
+    text[0] = '\0';
+    fgets(text,size,stdin);
+    int len = strlen(text);
+    if (len > 0 && text[len - 1] == '\n')
+    {
+      text[len-1] = '\0';
+    }
+    else if (len == size - 1)
+    {
+        while(getchar() != '\n');
+    }
+}
+
 
 // добавляет часы ,обновляет время. звездочки стоят потому что это указатели
 void addHours(int* day, int* hour, int hours)
@@ -53,12 +73,14 @@ void reverseInventory(int inv[], int len)
         inv[i] = inv[len - 1 - i];
         inv[len - 1 - i] = temp;
     }
+
 }
 
 // прост печатаем меню
-void printMenu()
+void printMenu(char* farmer_name)
 {
-    printf("\n[1] Посмотреть на часы\n");
+    printf("\n====== Ферма: %s =======\n",farmer_name);
+    printf("[1] Посмотреть на часы\n");
     printf("[2] Поработать (промотать время)\n");
     printf("[3] Посмотреть инвентарь\n");
     printf("[4] Положить предмет в слот\n");
@@ -148,9 +170,17 @@ int main()
     int inventory[INVENTORY_SIZE] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
     int action;
 
+    // выводим имя фермера в шапке
+    char farmer_name[MAX_NAME_LEN];
+    readString("Как вас зовут,фермер?",farmer_name, MAX_NAME_LEN);
+    if (strlen(farmer_name) == 0)
+    {
+        strcpy(farmer_name,DEFAULT_FARMER_NAME);
+    }
+
     do
     {
-        printMenu();
+        printMenu(farmer_name);
         action = readInt();
 
         switch (action)
