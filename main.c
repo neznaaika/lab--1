@@ -12,6 +12,10 @@
 #define MAX_ITEM_ID 9 
 #define MAX_NAME_LEN 64
 #define DEFAULT_FARMER_NAME "Фермер"
+#define MAX_ITEMS (MAX_ITEM_ID + 1)
+#define LINE_LEN 128
+#define NOT_FOUND -1
+#define ITEMS_FILE "items.txt"
 
 // проверяет,ввели ли число или что то другое
 int readInt()
@@ -55,6 +59,38 @@ void readString(char* ask,char* text,int size)
     }
 }
 
+void fillDefaultNames(char names[][MAX_NAME_LEN])
+{
+    char defaults[MAX_ITEMS][MAX_NAME_LEN] = {"Пусто", "Дерево", "Камень", "Семена_пшеницы", "Лейка", "Мотыга", "Топор", "Кирка", "Морковь", "Пшеница"};
+    for (int i = 0;i < MAX_ITEMS;i++)
+    {
+        strcpy(names[i],defaults[i]);
+    }
+}
+
+int loadItemNames(char names[][MAX_NAME_LEN])
+{
+    FILE* file = fopen(ITEMS_FILE,"r");
+    if (file == NULL)
+    {
+        return NOT_FOUND;
+    }
+    char line[LINE_LEN];
+    int count = 0;
+    while(count < MAX_ITEMS && fgets(line,LINE_LEN,file) != NULL)
+    {
+        int len = strlen(line);
+        if (len > 0 && line[len - 1] == '\n')
+        {
+            line[len - 1 ] = '\0';
+        }
+        strncpy(names[count], line, MAX_NAME_LEN -1);
+        names[count][MAX_NAME_LEN - 1] = '\0';
+        count++;
+    }
+    fclose(file);
+    return 0;
+}
 
 // добавляет часы ,обновляет время. звездочки стоят потому что это указатели
 void addHours(int* day, int* hour, int hours)
@@ -176,6 +212,13 @@ int main()
     if (strlen(farmer_name) == 0)
     {
         strcpy(farmer_name,DEFAULT_FARMER_NAME);
+    }
+
+    char item_names[MAX_ITEMS][MAX_NAME_LEN];
+    fillDefaultNames(item_names);
+    if (loadItemNames(item_names)== NOT_FOUND)
+    {
+        printf("Предупреждение: файл %s не найден. Используем названия по умолчанию.\n", ITEMS_FILE);
     }
 
     do
