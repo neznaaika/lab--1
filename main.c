@@ -136,30 +136,12 @@ void printTime(int day, int hour)
     printf("%d:00\n", hour);
 }
 
-// название предмета по его номеру
-void printItemName(int id)
-{
-    switch (id)
-    {
-    case 1: printf(" (Дерево)"); break;
-    case 2: printf(" (Камень)"); break;
-    case 3: printf(" (Семена)"); break;
-    case 4: printf(" (Лейка)"); break;
-    case 5: printf(" (Мотыга)"); break;
-    case 6: printf(" (Топор)"); break;
-    case 7: printf(" (Кирка)"); break;
-    case 8: printf(" (Морковь)"); break;
-    case 9: printf(" (Пшеница)"); break;
-    }
-}
 // выводим инвентарь на экран
-void printInventory(int inv[], int len)
+void printInventory(int inv[], int len,char names[][MAX_NAME_LEN])
 {
     for (int i = 0; i < len; i++)
     {
-        printf("Слот %d: [%d]", i, inv[i]);
-        printItemName(inv[i]);
-        printf("\n");
+        printf("Слот %d: [%d] - %s\n", i, inv[i],names[inv[i]]);
     }
 }
 // работаем н-е количество часов, используем функцию addhours
@@ -185,13 +167,13 @@ void doThrowItem(int inv[])
     printf("Слот %d очищен\n", slot);
 }
 // показывает инвентарь до переворота и после 
-void doReverse(int inv[])
+void doReverse(int inv[], char names[][MAX_NAME_LEN])
 {
     printf("--- До переворота ---\n");
-    printInventory(inv, INVENTORY_SIZE);
+    printInventory(inv, INVENTORY_SIZE,names);
     reverseInventory(inv, INVENTORY_SIZE);
     printf("--- После переворота ---\n");
-    printInventory(inv, INVENTORY_SIZE);
+    printInventory(inv, INVENTORY_SIZE,names);
 }
 
 // main (основная часть) 
@@ -235,7 +217,7 @@ int main()
             doWork(&current_day, &current_hour);
             break;
         case 3:
-            printInventory(inventory, INVENTORY_SIZE);
+            printInventory(inventory, INVENTORY_SIZE,item_names);
             break;
         case 4:
             doPutItem(inventory);
@@ -244,7 +226,7 @@ int main()
             doThrowItem(inventory);
             break;
         case 6:
-            doReverse(inventory);
+            doReverse(inventory,item_names);
             break;
         case 0:
             printf("Пока-пока!\n");
