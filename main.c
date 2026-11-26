@@ -16,6 +16,7 @@
 #define LINE_LEN 128
 #define NOT_FOUND -1
 #define ITEMS_FILE "items.txt"
+#define DIARY_FILE "diary.txt"
 
 // проверяет,ввели ли число или что то другое
 int readInt()
@@ -161,6 +162,7 @@ void printMenu(char* farmer_name)
     printf("[5] Выбросить предмет\n");
     printf("[6] Перевернуть инвентарь\n");
     printf("[7] Найти предмет в рюкзаке по названию\n");
+    printf("[8] Записать состояние в дневник фермера\n");
     printf("[0] Выход\n");
     printf("Ваш выбор: ");
 }
@@ -182,6 +184,28 @@ void printInventory(int inv[], int len,char names[][MAX_NAME_LEN])
     {
         printf("Слот %d: [%d] - %s\n", i, inv[i],names[inv[i]]);
     }
+}
+
+void printDiary(FILE* out,char* farmer_name,int day,int hour,int inv[],char names[][MAX_NAME_LEN])
+{
+    fprintf(out, "Фермер: %s, День %d, %02d:00\n",farmer_name,day,hour);
+    for (int i = 0;i < INVENTORY_SIZE; i++)
+    {
+        fprintf(out, " Слот %d: %s\n", i, names[inv[i]]);
+    }
+}
+
+void doDiary(char* farmer_name,int day,int hour,int inv[],char names[][MAX_NAME_LEN])
+{
+    printDiary(stdout,farmer_name,day,hour,inv,names);
+    FILE* diary = fopen(DIARY_FILE,"a");
+    if(diary == NULL)
+    {
+        printf("Ошибка: не удалось открыть файл %s!\n",DIARY_FILE);
+        return;
+    }
+    printDiary(diary,farmer_name,day,hour,inv,names);
+    fclose(diary);
 }
 // работаем н-е количество часов, используем функцию addhours
 void doWork(int* day, int* hour)
@@ -269,6 +293,9 @@ int main()
             break;
         case 7:
             doSearchItem(inventory,item_names);
+            break;
+        case 8:
+            doDiary(farmer_name,current_day,current_hour,inventory,item_names);
             break;
         case 0:
             printf("Пока-пока!\n");
