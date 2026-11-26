@@ -17,6 +17,10 @@
 #define NOT_FOUND -1
 #define ITEMS_FILE "items.txt"
 #define DIARY_FILE "diary.txt"
+#define MAX_NPC 20     
+#define NPC_FIELDS 4   
+#define INPUT_FILE "input.txt"
+#define OUTPUT_FILE "output.txt"
 
 // проверяет,ввели ли число или что то другое
 int readInt()
@@ -105,6 +109,35 @@ int findName(char names[][MAX_NAME_LEN],int count,char* name)
     return NOT_FOUND;
 }
 
+// задание по варианту
+int buildSchedule(FILE* file, int hour, char names[][MAX_NAME_LEN], char places[][MAX_NAME_LEN], int busy[])
+{
+    char line[LINE_LEN], name[MAX_NAME_LEN], place[MAX_NAME_LEN];
+    int start, end;
+    int count = 0;
+    while (count < MAX_NPC && fgets(line, LINE_LEN, file) != NULL)
+    {
+        // 63 в формате = MAX_NAME_LEN - 1 (защита от выхода за границы массива)
+        if (sscanf(line, "%63[^;];%d;%d;%63[^\n]", name, &start, &end, place) == NPC_FIELDS)
+        {
+            int index = findName(names, count, name);
+            if (index == NOT_FOUND)
+            {
+                index = count; // новый житель - добавляем в конец списка
+                strcpy(names[index], name);
+                busy[index] = 0;
+                count++;
+            }
+            if (hour >= start && hour < end)
+            {
+                strcpy(places[index], place);
+                busy[index] = 1;
+            }
+        }
+    }
+    return count;
+}
+
 void doSearchItem(int inv[], char names[][MAX_NAME_LEN])
 {
     char name[MAX_NAME_LEN];
@@ -163,6 +196,7 @@ void printMenu(char* farmer_name)
     printf("[6] Перевернуть инвентарь\n");
     printf("[7] Найти предмет в рюкзаке по названию\n");
     printf("[8] Записать состояние в дневник фермера\n");
+    printf("[9] Расписание жителей деревни\n");
     printf("[0] Выход\n");
     printf("Ваш выбор: ");
 }
@@ -238,6 +272,38 @@ void doReverse(int inv[], char names[][MAX_NAME_LEN])
     printf("--- После переворота ---\n");
     printInventory(inv, INVENTORY_SIZE,names);
 }
+// задание по варианту
+void printSchedule(FILE* out, int hour, char names[][MAX_NAME_LEN], char places[][MAX_NAME_LEN], int busy[], int count)
+{
+    fprintf(out, "Жители деревни в %02d:00:\n", hour);
+    for (int i = 0; i < count; i++)
+    {
+        if (busy[i] == 1)
+        {
+            fprintf(out, "  %s - %s\n", names[i], places[i]);
+        }
+        else
+        {
+            fprintf(out, "  %s - [Спит дома]\n", names[i]);
+        }
+    }
+}
+// задание по варианту
+void doSchedule(int hour)
+{
+    FILE* input = fopen(INPUT_FILE, "r");
+    if (input == NULL)
+    {
+        printf("Ошибка: не удалось открыть файл %s!\n", INPUT_FILE);
+        return;
+    }
+    char npc_names[MAX_NPC][MAX_NAME_LEN], npc_places[MAX_NPC][MAX_NAME_LEN];
+    int npc_busy[MAX_NPC];
+    int count = buildSchedule(input, hour, npc_names, npc_places, npc_busy);
+    fclose(input);
+
+    printSchedule(stdout, hour, npc_names, npc_places, npc_busy, count);
+}
 
 // main (основная часть) 
 
@@ -296,6 +362,9 @@ int main()
             break;
         case 8:
             doDiary(farmer_name,current_day,current_hour,inventory,item_names);
+            break;
+        case 9:
+            doSchedule(current_hour);
             break;
         case 0:
             printf("Пока-пока!\n");
