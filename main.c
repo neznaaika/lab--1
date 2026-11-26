@@ -319,7 +319,7 @@ int main()
 
     // выводим имя фермера в шапке
     char farmer_name[MAX_NAME_LEN];
-    readString("Как вас зовут,фермер?",farmer_name, MAX_NAME_LEN);
+    readString("Как вас зовут,фермер? ",farmer_name, MAX_NAME_LEN);
     if (strlen(farmer_name) == 0)
     {
         strcpy(farmer_name,DEFAULT_FARMER_NAME);
