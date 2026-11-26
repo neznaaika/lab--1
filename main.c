@@ -303,6 +303,15 @@ void doSchedule(int hour)
     fclose(input);
 
     printSchedule(stdout, hour, npc_names, npc_places, npc_busy, count);
+    
+    FILE* output = fopen(OUTPUT_FILE, "w");
+    if (output == NULL)
+    {
+        printf("Ошибка: не удалось записать файл %s!\n", OUTPUT_FILE);
+        return;
+    }
+    printSchedule(output, hour, npc_names, npc_places, npc_busy, count);
+    fclose(output);
 }
 
 // main (основная часть) 
