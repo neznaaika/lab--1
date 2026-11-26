@@ -92,6 +92,44 @@ int loadItemNames(char names[][MAX_NAME_LEN])
     return 0;
 }
 
+int findName(char names[][MAX_NAME_LEN],int count,char* name)
+{
+    for(int i = 0;i < count;i++)
+    {
+        if (strcmp(names[i],name) == 0)
+        {
+            return i;
+        }
+    }
+    return NOT_FOUND;
+}
+
+void doSearchItem(int inv[], char names[][MAX_NAME_LEN])
+{
+    char name[MAX_NAME_LEN];
+    readString("Введите название предмета: ",name,MAX_NAME_LEN);
+    int id = findName(names,MAX_ITEMS,name);
+    if (id == NOT_FOUND)
+    {
+        printf("Предмета \"%s\" нет в каталоге.\n",name);
+        return;
+    }
+    int found = 0;
+    for (int i = 0;i < INVENTORY_SIZE;i++)
+    {
+        if (inv[i] == id)
+        {
+            printf("Предмет\"%s\" лежит в слоте %d\n",name,i);
+            found++;
+        }
+    }
+    if (found == 0)
+    {
+        printf("Предмета \"%s\" нет в рюкзаке.\n",name);
+    }    
+    
+}
+
 // добавляет часы ,обновляет время. звездочки стоят потому что это указатели
 void addHours(int* day, int* hour, int hours)
 {
@@ -122,6 +160,7 @@ void printMenu(char* farmer_name)
     printf("[4] Положить предмет в слот\n");
     printf("[5] Выбросить предмет\n");
     printf("[6] Перевернуть инвентарь\n");
+    printf("[7] Найти предмет в рюкзаке по названию\n");
     printf("[0] Выход\n");
     printf("Ваш выбор: ");
 }
@@ -227,6 +266,9 @@ int main()
             break;
         case 6:
             doReverse(inventory,item_names);
+            break;
+        case 7:
+            doSearchItem(inventory,item_names);
             break;
         case 0:
             printf("Пока-пока!\n");
